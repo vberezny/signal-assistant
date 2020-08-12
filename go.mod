@@ -1,4 +1,4 @@
-module signal-bots
+module github.com/vberezny/signal-assistant
 
 go 1.14
 
