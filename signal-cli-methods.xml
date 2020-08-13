@@ -1,0 +1,118 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node name="/org/asamk/Signal">
+ <interface name="org.asamk.Signal">
+  <method name="isRegistered" >
+   <arg type="b" direction="out"/>
+  </method>
+  <method name="sendMessage" >
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.AttachmentInvalid" />
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.Failure" />
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.InvalidNumber" />
+   <arg type="s" direction="in"/>
+   <arg type="as" direction="in"/>
+   <arg type="s" direction="in"/>
+   <arg type="x" direction="out"/>
+  </method>
+  <method name="sendMessage" >
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.AttachmentInvalid" />
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.Failure" />
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.InvalidNumber" />
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.UnregisteredUser" />
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.UntrustedIdentity" />
+   <arg type="s" direction="in"/>
+   <arg type="as" direction="in"/>
+   <arg type="as" direction="in"/>
+   <arg type="x" direction="out"/>
+  </method>
+  <method name="sendEndSessionMessage" >
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.Failure" />
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.InvalidNumber" />
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.UnregisteredUser" />
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.UntrustedIdentity" />
+   <arg type="as" direction="in"/>
+  </method>
+  <method name="sendGroupMessage" >
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.GroupNotFound" />
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.Failure" />
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.AttachmentInvalid" />
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.UnregisteredUser" />
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.UntrustedIdentity" />
+   <arg type="s" direction="in"/>
+   <arg type="as" direction="in"/>
+   <arg type="ay" direction="in"/>
+   <arg type="x" direction="out"/>
+  </method>
+  <method name="getContactName" >
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.InvalidNumber" />
+   <arg type="s" direction="in"/>
+   <arg type="s" direction="out"/>
+  </method>
+  <method name="setContactName" >
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.InvalidNumber" />
+   <arg type="s" direction="in"/>
+   <arg type="s" direction="in"/>
+  </method>
+  <method name="setContactBlocked" >
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.InvalidNumber" />
+   <arg type="s" direction="in"/>
+   <arg type="b" direction="in"/>
+  </method>
+  <method name="setGroupBlocked" >
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.GroupNotFound" />
+   <arg type="ay" direction="in"/>
+   <arg type="b" direction="in"/>
+  </method>
+  <method name="getGroupIds" >
+   <arg type="aay" direction="out"/>
+  </method>
+  <method name="getGroupName" >
+   <arg type="ay" direction="in"/>
+   <arg type="s" direction="out"/>
+  </method>
+  <method name="getGroupMembers" >
+   <arg type="ay" direction="in"/>
+   <arg type="as" direction="out"/>
+  </method>
+  <method name="updateGroup" >
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.AttachmentInvalid" />
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.Failure" />
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.InvalidNumber" />
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.GroupNotFound" />
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.UnregisteredUser" />
+   <annotation name="org.freedesktop.DBus.Method.Error" value="org.asamk.Signal.Error.UntrustedIdentity" />
+   <arg type="ay" direction="in"/>
+   <arg type="s" direction="in"/>
+   <arg type="as" direction="in"/>
+   <arg type="s" direction="in"/>
+   <arg type="ay" direction="out"/>
+  </method>
+  <signal name="SyncMessageReceived">
+   <arg type="x" direction="out" />
+   <arg type="s" direction="out" />
+   <arg type="s" direction="out" />
+   <arg type="ay" direction="out" />
+   <arg type="s" direction="out" />
+   <arg type="as" direction="out" />
+  </signal>
+  <signal name="ReceiptReceived">
+   <arg type="x" direction="out" />
+   <arg type="s" direction="out" />
+  </signal>
+  <signal name="MessageReceived">
+   <arg type="x" direction="out" />
+   <arg type="s" direction="out" />
+   <arg type="ay" direction="out" />
+   <arg type="s" direction="out" />
+   <arg type="as" direction="out" />
+  </signal>
+ </interface>
+ <interface name="org.freedesktop.DBus.Introspectable">
+  <method name="Introspect">
+   <arg type="s" direction="out"/>
+  </method>
+ </interface>
+ <interface name="org.freedesktop.DBus.Peer">
+  <method name="Ping">
+  </method>
+ </interface>
+</node>
