@@ -2,6 +2,7 @@ package signal
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os/exec"
 	"time"
@@ -12,9 +13,6 @@ import (
 const (
 	SIGNAL_CLI_DBUS_SERVICE = "org.asamk.Signal"
 )
-
-// TODO: better error handling
-// TODO: better logging
 
 type Signal struct {
 	Messages chan *Message
@@ -28,8 +26,12 @@ func NewSignal() *Signal {
 // Listen() establishes a connection to the DBus service and listens for
 // incoming Signal messages.
 func (s *Signal) Listen() {
+	// TODO: check if service is started and start it if not.
 	signals := make(chan *dbus.Signal, 10)
-	conn := connectDBus(signals)
+	conn, err := connectDBus(signals)
+	if err != nil {
+		log.Fatalf("Failed to connect to DBus %v", err)
+	}
 	defer conn.Close()
 
 	for signal := range signals {
@@ -37,43 +39,52 @@ func (s *Signal) Listen() {
 		if signal.Name == "org.asamk.Signal.ReceiptReceived" {
 			continue
 		}
-		message := newMessageFromSignal(signal)
+		message, err := newMessageFromSignal(signal)
+		if err != nil {
+			log.Printf("Failed to parse new message from signal %v", err)
+			continue
+		}
 		s.Messages <- message
 	}
 }
 
 // SendMessage() uses the signal-cli command in dbus mode. This is due to
-// the method org.asamk.Signal.sendMessage not working.
-func (s *Signal) SendMessage(m *Message) {
-	// TODO: further investigate using org.asamk.Signal.sendMessage method.
-	args := []string{"--dbus", "send", "-m", m.Text, m.PhoneNumber}
-	if m.Attachment != "" {
-		args = append(args, "-a", m.Attachment)
+// the method org.asamk.Signal.sendMessage not working as expected when called
+// from using dbus.Object.Call().
+// TODO: further investigate using org.asamk.Signal.sendMessage method.
+func (s *Signal) SendMessage(msg *Message) (err error) {
+	if msg.PhoneNumber[0:2] != "+1" && len(msg.PhoneNumber) != 12 {
+		err = errors.New(fmt.Sprintf("Unable to send message, phone number format incorrect: %v", msg.PhoneNumber))
+		return
+	}
+	args := []string{"--dbus", "send", "-m", msg.Text, msg.PhoneNumber}
+	if msg.Attachment != "" {
+		args = append(args, "-a", msg.Attachment)
 	}
 	cmd := exec.Command("signal-cli", args...)
-	out, err := cmd.Output()
+	_, err = cmd.Output()
 	if err != nil {
-		log.Fatal(err)
+		return
 	}
-	log.Print("Message sent")
-	log.Print(out)
+	log.Println("Message sent")
+	return
 }
 
 // Establish a connection to the org.asamk.Signal DBus interface on the Session Bus.
-func connectDBus(signals chan<- *dbus.Signal) (conn *dbus.Conn) {
-	conn, err := dbus.SessionBus()
+func connectDBus(signals chan<- *dbus.Signal) (conn *dbus.Conn, err error) {
+	conn, err = dbus.SessionBus()
 	if err != nil {
-		log.Fatal(err)
+		return
 	}
 
-	if err := verifyConnection(conn); err != nil {
-		log.Fatal(err)
+	if err = verifyConnection(conn); err != nil {
+		return
 	}
 
 	options := dbus.WithMatchSender(SIGNAL_CLI_DBUS_SERVICE)
 	err = conn.AddMatchSignal(options)
 	if err != nil {
-		log.Fatal(err)
+		return
 	}
 	conn.Signal(signals)
 	return
@@ -99,8 +110,6 @@ func verifyConnection(conn *dbus.Conn) (err error) {
 	return
 }
 
-// TODO: Rename?
-// TODO: Text -> Command?
 type Message struct {
 	Time        time.Time
 	PhoneNumber string
@@ -120,26 +129,29 @@ func NewMessage(t time.Time, phone, text, attachment, msgType string) *Message {
 }
 
 // Helper method that transforms a *dbus.Signal to a *Message.
-func newMessageFromSignal(signal *dbus.Signal) *Message {
-	log.Printf("Body: %+v", signal)
+func newMessageFromSignal(signal *dbus.Signal) (msg *Message, err error) {
 	utc, ok := signal.Body[0].(int64)
 	if !ok {
-		log.Fatalf("Failed to convert time to int64, %v\n", signal.Body[0])
+		err = errors.New(fmt.Sprintf("failed to convert time to int64, %v\n", signal.Body[0]))
+		return
 	}
 	t := time.Unix(utc, 0)
 	phone, ok := signal.Body[1].(string)
 	if !ok {
-		log.Fatalf("Failed to convert phone number to string, %v\n", signal.Body[1])
+		err = errors.New(fmt.Sprintf("failed to convert phone number to string, %v\n", signal.Body[1]))
+		return
 	}
 	text, ok := signal.Body[3].(string)
 	if !ok {
-		log.Printf("Failed to convert message text to string, %v\n", signal.Body[3])
-		text = ""
+		err = errors.New(fmt.Sprintf("failed to convert message text to string, %v\n", signal.Body[3]))
+		return
 	}
 	attachment, ok := signal.Body[4].(string)
 	if !ok {
+		// A message without an attachment is acceptable. Just log for now.
 		log.Printf("Failed to convert attachment path to string, %v", signal.Body[4])
 		attachment = ""
 	}
-	return NewMessage(t, phone, text, attachment, signal.Name)
+	msg = NewMessage(t, phone, text, attachment, signal.Name)
+	return
 }

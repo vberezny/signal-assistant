@@ -1,43 +1,65 @@
 package assistant
 
 import (
+	"errors"
+	"fmt"
 	"log"
 
 	"github.com/vberezny/signal-assistant/signal"
 )
 
+type Command string
+
 const (
-	command1 = "test"
-	command2 = "test2"
+	store    Command = "!store"
+	get              = "!get"
+	commands         = "!man" // List all commands (manual).
 )
 
-// TODO: name the member?
 type Assistant struct {
-	*signal.Signal
+	cli   *signal.Signal
+	owner string
 }
 
-func NewAssistant() *Assistant {
-	return &Assistant{signal.NewSignal()}
+func NewAssistant(owner string) *Assistant {
+	return &Assistant{
+		cli:   signal.NewSignal(),
+		owner: owner,
+	}
 }
 
 func (a *Assistant) Run() {
-	go a.Listen()
+	go a.cli.Listen()
 
-	for message := range a.Messages {
-		log.Print(message)
-		a.processMessage(message)
+	for message := range a.cli.Messages {
+		err := a.processMessage(message)
+		if err != nil {
+			log.Printf("Error while processing message: %v", err)
+		}
 	}
 }
 
-func (a *Assistant) processMessage(message *signal.Message) {
-	// TODO: hashmap of valid commands?
-	if message.Text == command1 {
+// TODO: hashmap of valid commands?
+func (a *Assistant) processMessage(msg *signal.Message) (err error) {
+	if msg.PhoneNumber != a.owner {
+		err = errors.New(fmt.Sprintf("message arrived from unknown number %v", msg.PhoneNumber))
+		return
+	}
+	if string(msg.Text[0]) != "!" {
+		// TODO: reply saying invalid command.
+		err = errors.New(fmt.Sprintf("invalid command format, must start with !. Message Text: %v", msg.Text))
+		return
+	}
+	command := Command(msg.Text)
+	if command == store {
 		log.Print("valid command")
-		message.Text = "you passed"
-		a.SendMessage(message)
+		msg.Text = "you passed"
+		err = a.cli.SendMessage(msg)
+		if err != nil {
+			return
+		}
 	} else {
-		// TODO: if the message came from the right number, reply back saying something
-		// about the command being wrong or malformed.
 		log.Print("invalid command")
 	}
+	return
 }

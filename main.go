@@ -1,8 +1,12 @@
 package main
 
-import "github.com/vberezny/signal-assistant/assistant"
+import (
+	"os"
+
+	"github.com/vberezny/signal-assistant/assistant"
+)
 
 func main() {
-	assistant := assistant.NewAssistant()
+	assistant := assistant.NewAssistant(os.Getenv("OWNER_NUMBER"))
 	assistant.Run()
 }
