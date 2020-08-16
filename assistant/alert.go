@@ -1,9 +1,17 @@
 package assistant
 
+// All alerts should return a non-empty string if a notification is required.
+type handlerFunc func() (message string)
+
 type alert struct {
-	name string
+	name    string
+	handler handlerFunc
 }
 
-func NewAlert() *alert {
-	return &alert{}
+// TODO: more alerts.
+var alerts = []*alert{
+	{
+		name:    "Crypto",
+		handler: cryptoAlertHandler,
+	},
 }

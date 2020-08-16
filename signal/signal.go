@@ -25,6 +25,7 @@ func NewSignal() *Signal {
 // Listen() establishes a connection to the DBus service and listens for
 // incoming Signal messages.
 func (s *Signal) Listen() {
+	log.Print("Connecting to signal-cli.")
 	// TODO: check if service is started and start it if not.
 	signals := make(chan *dbus.Signal, 10)
 	conn, err := connectDBus(signals)
