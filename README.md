@@ -36,5 +36,5 @@ This application expects the `OWNER_NUMBER` env variable to be set to a valid Si
 Phone Number including the country code. `ASSISTANT_FOLDER` must be set to a valid directory 
 to be used as a shared folder by the assistant to store and retrieve attachments. 
 ```
-OWNER_NUMBER=+11234567890 ASSISTANT_FOLDER=/home/user/shared-directory/ go run main.go
+ASSISTANT_NUMBER=+11234567891 OWNER_NUMBER=+11234567890 ASSISTANT_FOLDER=/home/user/shared-directory/ go run main.go
 ```

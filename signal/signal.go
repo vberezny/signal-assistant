@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
+	"time"
 
 	"github.com/godbus/dbus/v5"
 )
@@ -26,7 +28,9 @@ func NewSignal() *Signal {
 // incoming Signal messages.
 func (s *Signal) Listen() {
 	log.Print("Connecting to signal-cli.")
-	// TODO: check if service is started and start it if not.
+	if err := launchSignalCLI(); err != nil {
+		log.Fatalf("Unable to start signal-cli %v", err)
+	}
 	signals := make(chan *dbus.Signal, 10)
 	conn, err := connectDBus(signals)
 	if err != nil {
@@ -70,6 +74,24 @@ func (s *Signal) SendMessage(msg *Message) (err error) {
 		return
 	}
 	log.Println("Message sent")
+	return
+}
+
+// Launches signal-cli on the Session DBus in daemon mode.
+func launchSignalCLI() (err error) {
+	phoneNumber := os.Getenv("ASSISTANT_NUMBER")
+	if phoneNumber == "" {
+		err = errors.New("Failed to retrieve assistant phone number from $ASSISTANT_NUMBER")
+		return
+	}
+	cmd := exec.Command("signal-cli", "-u", phoneNumber, "daemon")
+	err = cmd.Start()
+	if err != nil {
+		return
+	}
+	// Allow for signal-cli to start before attempting to connect to the DBus service.
+	time.Sleep(time.Second * 3)
+	log.Print("Started signal-cli on the session bus")
 	return
 }
 
