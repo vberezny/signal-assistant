@@ -21,11 +21,10 @@ type Assistant struct {
 }
 
 func NewAssistant(owner, sharedFolder string) *Assistant {
-	commands := getAllCommands()
 	return &Assistant{
 		cli:          signal.NewSignal(),
 		owner:        owner,
-		commands:     commands,
+		commands:     getAllCommands(),
 		sharedFolder: sharedFolder,
 	}
 }
@@ -116,7 +115,6 @@ func (a *Assistant) storeAttachments(attachments []string, fileName, fileExtensi
 	fullPath := a.sharedFolder + fileName + "." + fileExtension
 	err = copy(attachments[0], fullPath)
 	if err == nil {
-		// No need to handle err as it will bubble up to the error handler.
 		err = a.sendMessage("Saved attachment at "+fullPath, nil)
 	}
 	return
@@ -170,7 +168,7 @@ func (a *Assistant) sendMessage(text string, attachments []string) (err error) {
 // A helper method to log the error and send a notification to the Assistant owner.
 func (a *Assistant) errorHandler(message string, err error) {
 	txt := fmt.Sprintf("%v %v", message, err)
-	log.Printf(txt)
+	log.Print(txt)
 	// Notify the owner of any errors.
 	err = a.sendMessage(txt, nil)
 	if err != nil {

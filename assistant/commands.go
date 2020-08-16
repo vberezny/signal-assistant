@@ -47,7 +47,7 @@ func getAllCommands() (allCommands []command) {
 
 func getCommandManual() (manual string) {
 	for cmd, description := range commands {
-		manual += fmt.Sprintf("%v ---\n %v\n", cmd, description)
+		manual += fmt.Sprintf("%v :\n %v\n", cmd, description)
 	}
 	return
 }
